@@ -2,7 +2,7 @@
 
 Personal portfolio website of **Kurt Aaron Delizo**, a Computer Engineering graduate and aspiring Data Analyst. It showcases my education and training, technical skills, analytics projects, and DataCamp certifications, and gives recruiters a quick way to reach me.
 
-**Live site:** https://your-project.vercel.app
+**Live site:** https://kurtdelizo.vercel.app
 
 <!-- Replace the link above with your Vercel URL after deploying.
      Optional: add a screenshot, e.g. ![Portfolio preview](docs/screenshot.png) -->
