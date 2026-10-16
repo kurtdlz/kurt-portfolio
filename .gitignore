@@ -1,0 +1,13 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Private or large data - never commit
+*.env
+data/
+*.csv
+*.xlsx
