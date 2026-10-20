@@ -232,11 +232,45 @@ document.querySelectorAll('.showcase').forEach((showcase) => {
   let gesture = null;
   let suppressClick = null;
   let suppressTimer = 0;
-  let captionTimer = 0;
+  let rafId = null;
+  let dragX = 0;
 
   if (!slides.length) return;
 
+  // Cache stage width to eliminate layout thrashing during drag
+  let stageWidth = stage.clientWidth || 600;
+  const updateStageWidth = () => {
+    stageWidth = stage.clientWidth || 600;
+  };
+  window.addEventListener('resize', updateStageWidth, { passive: true });
+
   const titleFor = (index) => slides[index].querySelector('h3').textContent.trim();
+
+  // Pre-create caption elements to switch via classes instead of DOM rebuilding during swipes
+  const captionItems = slides.map((slide, index) => {
+    const item = document.createElement('div');
+    item.className = 'showcase-caption-item';
+    item.dataset.index = String(index);
+    item.setAttribute('aria-hidden', String(index !== activeIndex));
+    if (index === activeIndex) item.classList.add('is-active');
+    const info = slide.querySelector('.showcase-info');
+    if (info) item.append(info.cloneNode(true));
+    caption.append(item);
+    return item;
+  });
+
+  const measureCaption = () => {
+    let maxHeight = 0;
+    captionItems.forEach((item) => {
+      const info = item.firstElementChild;
+      if (info) {
+        maxHeight = Math.max(maxHeight, info.offsetHeight);
+      }
+    });
+    if (maxHeight > 0) {
+      caption.style.minHeight = `${Math.ceil(maxHeight)}px`;
+    }
+  };
 
   const render = (announce = true) => {
     slides.forEach((slide, index) => {
@@ -252,35 +286,21 @@ document.querySelectorAll('.showcase').forEach((showcase) => {
       else dot.removeAttribute('aria-current');
     });
 
+    captionItems.forEach((item, index) => {
+      const isActive = index === activeIndex;
+      item.classList.toggle('is-active', isActive);
+      item.setAttribute('aria-hidden', String(!isActive));
+    });
+
     if (announce) {
       liveRegion.textContent = `${itemType} ${activeIndex + 1} of ${slides.length}: ${titleFor(activeIndex)}`;
     }
-
-    caption.classList.add('is-changing');
-    window.clearTimeout(captionTimer);
-    captionTimer = window.setTimeout(() => {
-      caption.replaceChildren(slides[activeIndex].querySelector('.showcase-info').cloneNode(true));
-      caption.classList.remove('is-changing');
-    }, 200);
   };
 
   const goTo = (index) => {
     activeIndex = (index + slides.length) % slides.length;
-    slides.forEach((slide) => slide.style.removeProperty('--showcase-drag-x'));
+    stage.style.removeProperty('--showcase-drag-x');
     render();
-  };
-
-  const measureCaption = () => {
-    const measuring = document.createElement('div');
-    measuring.className = 'showcase-measure';
-    showcase.append(measuring);
-    let maxHeight = 0;
-    slides.forEach((slide) => {
-      measuring.append(slide.querySelector('.showcase-info').cloneNode(true));
-      maxHeight = Math.max(maxHeight, measuring.lastElementChild.getBoundingClientRect().height);
-    });
-    measuring.remove();
-    caption.style.minHeight = `${Math.ceil(maxHeight)}px`;
   };
 
   slides.forEach((slide, index) => {
@@ -288,6 +308,12 @@ document.querySelectorAll('.showcase').forEach((showcase) => {
     slide.setAttribute('aria-roledescription', 'slide');
     slide.setAttribute('aria-label', `${index + 1} of ${slides.length}: ${titleFor(index)}`);
     slide.tabIndex = -1;
+
+    // Pre-decode image so incoming neighbors do not stall
+    const img = slide.querySelector('img');
+    if (img && typeof img.decode === 'function') {
+      img.decode().catch(() => {});
+    }
 
     const certificateImage = slide.querySelector('.cert-image');
     if (certificateImage) {
@@ -325,9 +351,9 @@ document.querySelectorAll('.showcase').forEach((showcase) => {
 
   showcase.classList.add('is-enhanced');
   measureCaption();
-  render();
+  render(false);
   document.fonts?.ready.then(measureCaption);
-  window.addEventListener('resize', measureCaption);
+  window.addEventListener('resize', measureCaption, { passive: true });
 
   caption.addEventListener('click', (event) => {
     const button = event.target.closest('.showcase-read-more');
@@ -336,6 +362,7 @@ document.querySelectorAll('.showcase').forEach((showcase) => {
     const expanded = info.classList.toggle('is-expanded');
     button.setAttribute('aria-expanded', String(expanded));
     button.textContent = expanded ? 'Show less' : 'Read more';
+    measureCaption();
   });
 
   stage.addEventListener('keydown', (event) => {
@@ -400,11 +427,22 @@ document.querySelectorAll('.showcase').forEach((showcase) => {
     if (!gesture || event.pointerId !== gesture.pointerId) return;
     const deltaX = event.clientX - gesture.startX;
     const deltaY = event.clientY - gesture.startY;
-    if (Math.hypot(deltaX, deltaY) > 6) gesture.moved = true;
-    if (Math.abs(deltaX) > 6 && Math.abs(deltaX) > Math.abs(deltaY) * 1.15) {
-      gesture.horizontal = true;
-      gesture.slide.style.setProperty('--showcase-drag-x', `${deltaX}px`);
+    if (!gesture.horizontal) {
+      if (Math.hypot(deltaX, deltaY) > 6) gesture.moved = true;
+      if (Math.abs(deltaX) > 6 && Math.abs(deltaX) > Math.abs(deltaY) * 1.15) {
+        gesture.horizontal = true;
+        stage.classList.add('is-dragging');
+      }
+    }
+    if (gesture.horizontal) {
       if (event.cancelable) event.preventDefault();
+      dragX = deltaX;
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          stage.style.setProperty('--showcase-drag-x', `${dragX}px`);
+          rafId = null;
+        });
+      }
     }
   }, { passive: false });
 
@@ -412,26 +450,38 @@ document.querySelectorAll('.showcase').forEach((showcase) => {
     if (!gesture || event.pointerId !== gesture.pointerId) return;
     const finished = gesture;
     gesture = null;
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
     if (!finished.moved) return;
 
     suppressClick = { x: event.clientX, y: event.clientY };
     window.clearTimeout(suppressTimer);
-    suppressTimer = window.setTimeout(() => { suppressClick = null; }, 600);
+    suppressTimer = window.setTimeout(() => { suppressClick = null; }, 400);
 
     if (!finished.horizontal) return;
     const deltaX = event.clientX - finished.startX;
     const elapsed = Math.max(performance.now() - finished.startedAt, 1);
     const velocity = Math.abs(deltaX) / elapsed;
-    if (Math.abs(deltaX) > stage.clientWidth * .15 || (Math.abs(deltaX) > 32 && velocity > .65)) {
+
+    stage.classList.remove('is-dragging');
+    if (Math.abs(deltaX) > stageWidth * 0.15 || (Math.abs(deltaX) > 32 && velocity > 0.5)) {
       goTo(activeIndex + (deltaX < 0 ? 1 : -1));
     } else {
-      finished.slide.style.removeProperty('--showcase-drag-x');
+      stage.style.removeProperty('--showcase-drag-x');
     }
   });
 
   window.addEventListener('pointercancel', (event) => {
     if (!gesture || event.pointerId !== gesture.pointerId) return;
-    gesture.slide.style.removeProperty('--showcase-drag-x');
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    stage.classList.remove('is-dragging');
+    stage.style.removeProperty('--showcase-drag-x');
     gesture = null;
   });
 
