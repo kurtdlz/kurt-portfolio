@@ -23,7 +23,7 @@ Personal portfolio website of **Kurt Aaron Delizo**, a Computer Engineering grad
 | Home | Introduction, call-to-action buttons, resume download, LinkedIn and GitHub links |
 | Experience & Education | DataCamp Scholar (Data Engineering Pilipinas Scholarship Program), Siemens Energy, Inc. on-the-job training, BS Computer Engineering |
 | Skills & Technologies | Python, SQL, PostgreSQL, Excel, Power BI, Pandas, NumPy, Scikit-learn, Matplotlib, Seaborn, Jupyter, Git, GitHub |
-| Projects | Four analytics and machine learning projects (see below) |
+| Projects | Five analytics, machine learning and data engineering projects (see below) |
 | Certifications | DataCamp Certified Data Analyst, Python Data and SQL Associate certificates |
 | Contact | Email, LinkedIn, GitHub and a contact form |
 
@@ -31,10 +31,12 @@ Personal portfolio website of **Kurt Aaron Delizo**, a Computer Engineering grad
 
 | Project | Type | Tools | Source |
 | --- | --- | --- | --- |
-| Employee Attrition Dashboard | HR data analysis | Power BI, Excel, DAX | [Repository](https://github.com/kurtdlz/HR-Data-Analysis) |
 | E-commerce Sales Analysis | Sales dashboard | Power BI, Power Query, DAX, Data Modeling | [Repository](https://github.com/kurtdlz/Ecommerce-Sales-Analysis) |
+| Clinic Appointments ETL Pipeline | Data Engineering (ETL) | Python, PostgreSQL, Pandas, Numpy | [Repository](https://github.com/kurtdlz/clinic-appointments-etl-pipeline) |
+| Employee Attrition Dashboard | HR data analysis | Power BI, Excel, DAX | [Repository](https://github.com/kurtdlz/HR-Data-Analysis) |
 | Healthcare Data EDA | Exploratory data analysis | Python, Pandas, Seaborn | [Repository](https://github.com/kurtdlz/Healthcare-Data-Analysis) |
 | Sleep Disorder Prediction | Machine learning | Python, Scikit-learn, Matplotlib | [Repository](https://github.com/kurtdlz/Sleep-Disorder-Classification) |
+
 
 ## Certifications
 
@@ -67,6 +69,7 @@ Personal portfolio website of **Kurt Aaron Delizo**, a Computer Engineering grad
     ├── ecommerce-sales-dashboard.jpg
     ├── healthcare-data-analysis.png
     ├── sleep-disorder-prediction.png
+    └── clinic-etl-pipeline.png
     └── certificates/
 ```
 

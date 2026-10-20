@@ -301,6 +301,18 @@ document.querySelectorAll('.showcase').forEach((showcase) => {
         frame.classList.add('is-broken');
       }
     }
+    const projectImage = slide.querySelector('.project-image');
+    if (projectImage) {
+      const frame = projectImage.closest('.showcase-frame');
+      projectImage.addEventListener('error', () => {
+        projectImage.hidden = true;
+        frame.classList.add('is-broken');
+      });
+      if (projectImage.complete && projectImage.naturalWidth === 0) {
+        projectImage.hidden = true;
+        frame.classList.add('is-broken');
+      }
+    }
 
     const dot = document.createElement('button');
     dot.className = 'showcase-dot';

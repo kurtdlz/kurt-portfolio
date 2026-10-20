@@ -280,6 +280,16 @@ header.nav {
   clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
 
+/* ---------- Project image fallback ---------- */
+.project-image-fallback {
+  display: none; width: 100%; height: 100%; place-items: center;
+  padding: 24px; background: var(--cert-paper); color: var(--heading);
+  font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; text-align: center;
+  filter: grayscale(1);
+}
+.showcase-frame.is-broken .project-image-fallback { display: grid; }
+.showcase-frame img[hidden] { display: none; }
+
 /* ---------- Projects fallback cards ---------- */
 .project {
   min-width: 0; overflow: hidden; display: flex; flex-direction: column; padding: 0;
@@ -440,7 +450,7 @@ html.has-scroll-reveal .bar-motif { transform: translateX(-24px); opacity: 0; tr
 }
 .showcase.is-enhanced[data-showcase-item="Certificate"] .showcase-stage { width: 100%; }
 .cert-frame { aspect-ratio: 1719 / 988; }
-.showcase[data-showcase-item="Certificate"] .cert-frame img { padding: 0; filter: grayscale(1); }
+.showcase[data-showcase-item="Certificate"] .cert-frame img { padding: 0; }
 .cert-slide:hover { transform: none; border-color: var(--border); }
 .cert-image-fallback {
   display: none; width: 100%; height: 100%; place-items: center;
@@ -455,8 +465,22 @@ html.has-scroll-reveal .bar-motif { transform: translateX(-24px); opacity: 0; tr
   max-width: 100%;
 }
 .cert-title-row h3 { margin: 0; }
-.cert-datacamp-icon { display: grid; width: 36px; height: 36px; flex: none; place-items: center; }
+.cert-datacamp-icon { display: grid; width: 36px; height: 36px; flex: none; place-items: center; border-radius: 6px; background: #fff; }
 .cert-datacamp-icon img { display: block; width: 28px; height: 28px; }
+
+/* ---------- Contact icon brand colors ---------- */
+/* Gmail: always red */
+.contact-item--gmail .ico { color: #EA4335; }
+/* LinkedIn: brand blue (slightly lightened in dark mode for contrast) */
+.contact-item--linkedin .ico { color: #0A66C2; }
+:root[data-theme="dark"] .contact-item--linkedin .ico { color: #3B8FE6; }
+/* GitHub: dark in light mode, white in dark mode */
+.contact-item--github .ico { color: #181717; }
+:root[data-theme="dark"] .contact-item--github .ico { color: #ffffff; }
+/* Ensure SVG icons pick up the color */
+.contact-item .ico svg { fill: currentColor; }
+/* Ensure img-based icons inherit correct sizing (unchanged) */
+.contact-item .ico img { display: block; width: 23px; height: 23px; object-fit: contain; }
 .cert-showcase-info .cert-issuer { color: var(--muted); font-size: 0.9rem; }
 .cert-showcase-info .cert-verify {
   display: inline-flex; min-height: 44px; align-items: center; justify-content: center;
@@ -649,9 +673,6 @@ html.theme-switching .reveal-card {
   .showcase.is-enhanced .showcase-slide[data-position="1"] {
     transform: translate(-50%, -50%) translateX(95%) scale(.85);
   }
-}
-@media (prefers-contrast: more) {
-  .cert-frame img { transition: none; }
 }
 @media print {
   .hero-tagline.is-typing { height: auto !important; }
